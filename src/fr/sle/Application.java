@@ -1,5 +1,11 @@
 package fr.sle;
 
+import fr.sle.converter.ComicConverter;
+import fr.sle.csv.descriptor.ComicCsvDescriptor;
+import fr.sle.csv.read.CsvFile;
+import fr.sle.csv.read.CsvReader;
+import fr.sle.model.Comic;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +22,7 @@ public class Application {
 
     public static void main(String... args) throws IOException {
 
-        Pattern linePattern = Pattern.compile("(\\w+),(\\w+)");
+        Pattern linePattern = ComicCsvDescriptor.getPattern();
 
         Path path = Paths.get("data.csv");
 
@@ -24,9 +30,9 @@ public class Application {
 
         ComicConverter comicConverter = new ComicConverter();
 
-        CsvReader<Comic> comicCsvReader = new CsvReader<>(comicConverter);
+        CsvReader<Comic, ComicCsvDescriptor> comicCsvReader = new CsvReader<>(comicConverter);
 
-        comicCsvReader.read(csvFile);
+        comicCsvReader.read(csvFile, ComicCsvDescriptor.class);  
 
     }
 }

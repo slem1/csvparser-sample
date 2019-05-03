@@ -1,4 +1,4 @@
-package fr.sle;
+package fr.sle.model;
 
 import java.util.Objects;
 

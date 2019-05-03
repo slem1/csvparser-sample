@@ -1,4 +1,4 @@
-package fr.sle;
+package fr.sle.csv.read;
 
 import java.nio.file.Path;
 import java.util.Objects;
