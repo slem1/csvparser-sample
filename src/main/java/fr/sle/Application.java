@@ -32,7 +32,7 @@ public class Application {
 
         CsvReader<Comic, ComicCsvDescriptor> comicCsvReader = new CsvReader<>(comicConverter);
 
-        comicCsvReader.read(csvFile, ComicCsvDescriptor.class);  
+        comicCsvReader.read(csvFile, ComicCsvDescriptor.class);
 
     }
 }
