@@ -21,18 +21,18 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
 
     private final Converter<T, E> converter;
 
-    private List<T> output = new ArrayList<>();
-
     public CsvReader(Converter<T, E> converter) {
         this.converter = converter;
     }
 
-    public void read(CsvFile file, Class<E> descriptorClass) throws IOException {
+    public List<T> read(CsvFile file, Class<E> descriptorClass) throws IOException {
 
         Objects.requireNonNull(file);
         Objects.requireNonNull(descriptorClass);
 
         boolean hasHeader = true;
+
+        final List<T> result = new ArrayList<>();
 
         try (BufferedReader reader = Files.newBufferedReader(file.getFilePath())) {
             Pattern pattern = file.getPattern();
@@ -50,7 +50,7 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
                             objectMap.put(e, matcher.group(e.name()));
                         }
 
-                        output.add(converter.from(objectMap));
+                        result.add(converter.from(objectMap));
                     } else {
                         System.out.println(String.format("skip line %d, value: %s", count, line));
                     }
@@ -58,11 +58,11 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
 
                 count++;
             }
+
+            return result;
         } catch (IOException e) {
             e.printStackTrace();
             throw e;
         }
-
-        System.out.println(output);
     }
 }

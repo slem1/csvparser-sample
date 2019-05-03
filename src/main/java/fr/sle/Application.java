@@ -5,12 +5,17 @@ import fr.sle.csv.descriptor.ComicCsvDescriptor;
 import fr.sle.csv.read.CsvFile;
 import fr.sle.csv.read.CsvReader;
 import fr.sle.model.Comic;
+import fr.sle.writer.DataSource;
+import fr.sle.writer.DataWriter;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Pattern;
 
 /**
@@ -32,7 +37,26 @@ public class Application {
 
         CsvReader<Comic, ComicCsvDescriptor> comicCsvReader = new CsvReader<>(comicConverter);
 
-        comicCsvReader.read(csvFile, ComicCsvDescriptor.class);
+        List<Comic> comics = comicCsvReader.read(csvFile, ComicCsvDescriptor.class);
 
+        BlockingQueue<Comic> bq = new LinkedBlockingQueue<>(comics);
+
+        DataWriter dw = new DataWriter(bq, new DataSource());
+
+        Thread th1 = new Thread(dw);
+        Thread th2 = new Thread(dw);
+        Thread th3 = new Thread(dw);
+
+        th1.start();
+        th2.start();
+        th3.start();
+
+        try {
+            th1.join();
+            th2.join();
+            th3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -14,4 +14,6 @@ public class ComicConverter implements Converter<Comic, ComicCsvDescriptor> {
         Integer p = Integer.parseInt(objectMap.get(ComicCsvDescriptor.PRICE));
         return new Comic(objectMap.get(ComicCsvDescriptor.TITLE), p);
     }
+
+
 }
