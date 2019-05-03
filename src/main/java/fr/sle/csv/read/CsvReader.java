@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +24,12 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
 
     public CsvReader(Converter<T, E> converter) {
         this.converter = converter;
+    }
+
+    private AtomicBoolean inputFlag = new AtomicBoolean(true);
+
+    public AtomicBoolean getInputFlag() {
+        return inputFlag;
     }
 
     public List<T> read(CsvFile file, Class<E> descriptorClass) throws IOException {
@@ -58,6 +65,8 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
 
                 count++;
             }
+
+            inputFlag.set(false);
 
             return result;
         } catch (IOException e) {

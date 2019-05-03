@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -35,13 +36,15 @@ public class Application {
 
         ComicConverter comicConverter = new ComicConverter();
 
-        CsvReader<Comic, ComicCsvDescriptor> comicCsvReader = new CsvReader<>(comicConverter);
+        CsvReader<Comic, ComicCsvDescriptor> reader = new CsvReader<>(comicConverter);
 
-        List<Comic> comics = comicCsvReader.read(csvFile, ComicCsvDescriptor.class);
+        AtomicBoolean inputFlag = reader.getInputFlag();
+
+        List<Comic> comics = reader.read(csvFile, ComicCsvDescriptor.class);
 
         BlockingQueue<Comic> bq = new LinkedBlockingQueue<>(comics);
 
-        DataWriter dw = new DataWriter(bq, new DataSource());
+        DataWriter dw = new DataWriter(bq, new DataSource(), inputFlag);
 
         Thread th1 = new Thread(dw);
         Thread th2 = new Thread(dw);
