@@ -9,7 +9,6 @@ import fr.sle.writer.DataSource;
 import fr.sle.writer.DataWriter;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -62,4 +61,5 @@ public class Application {
             e.printStackTrace();
         }
     }
+
 }
