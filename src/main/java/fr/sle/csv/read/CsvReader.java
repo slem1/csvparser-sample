@@ -6,11 +6,10 @@ import fr.sle.csv.descriptor.CsvDescriptor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,28 +17,38 @@ import java.util.regex.Pattern;
 /**
  * @author slemoine
  */
-public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
+public class CsvReader<T, E extends Enum<E> & CsvDescriptor> implements Runnable {
+
+    private AtomicBoolean inputFlag = new AtomicBoolean(true);
+
+    private final CsvFile file;
+
+    private final Class<E> descriptorClass;
+
+    private final BlockingQueue<T> output;
 
     private final Converter<T, E> converter;
 
-    public CsvReader(Converter<T, E> converter) {
+    public CsvReader(CsvFile file, Class<E> descriptorClass, BlockingQueue<T> output, Converter<T, E> converter) {
+        this.file = file;
+        this.descriptorClass = descriptorClass;
+        this.output = output;
         this.converter = converter;
     }
-
-    private AtomicBoolean inputFlag = new AtomicBoolean(true);
 
     public AtomicBoolean getInputFlag() {
         return inputFlag;
     }
 
-    public List<T> read(CsvFile file, Class<E> descriptorClass) throws IOException {
+
+    public void read() throws IOException {
 
         Objects.requireNonNull(file);
         Objects.requireNonNull(descriptorClass);
+        Objects.requireNonNull(output);
 
         boolean hasHeader = true;
 
-        final List<T> result = new ArrayList<>();
 
         try (BufferedReader reader = Files.newBufferedReader(file.getFilePath())) {
             Pattern pattern = file.getPattern();
@@ -57,7 +66,7 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
                             objectMap.put(e, matcher.group(e.name()));
                         }
 
-                        result.add(converter.from(objectMap));
+                        output.add(converter.from(objectMap));
                     } else {
                         System.out.println(String.format("skip line %d, value: %s", count, line));
                     }
@@ -67,11 +76,19 @@ public class CsvReader<T, E extends Enum<E> & CsvDescriptor> {
             }
 
             inputFlag.set(false);
-
-            return result;
         } catch (IOException e) {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    @Override
+    public void run() {
+        try {
+            read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

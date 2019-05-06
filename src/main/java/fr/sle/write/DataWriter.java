@@ -27,16 +27,18 @@ public class DataWriter<T> implements Runnable {
     @Override
     public void run() {
 
-        while (inputFlag.get() || pollAndWrite()) {
+        while ( pollAndWrite() || inputFlag.get()) {
 
         }
+
+        pollAndWrite();
 
     }
 
     private boolean pollAndWrite() {
 
         try {
-            T c = data.poll(1, TimeUnit.MILLISECONDS);
+            T c = data.poll(1, TimeUnit.NANOSECONDS);
 
             if (c != null) {
                 dao.insert(c);
