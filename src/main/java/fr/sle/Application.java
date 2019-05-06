@@ -5,8 +5,8 @@ import fr.sle.csv.descriptor.ComicCsvDescriptor;
 import fr.sle.csv.read.CsvFile;
 import fr.sle.csv.read.CsvReader;
 import fr.sle.model.Comic;
-import fr.sle.writer.DataSource;
-import fr.sle.writer.DataWriter;
+import fr.sle.dao.ComicDao;
+import fr.sle.write.DataWriter;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -43,7 +43,7 @@ public class Application {
 
         BlockingQueue<Comic> bq = new LinkedBlockingQueue<>(comics);
 
-        DataWriter dw = new DataWriter(bq, new DataSource(), inputFlag);
+        DataWriter<Comic> dw = new DataWriter<>(bq, inputFlag, new ComicDao(DataSourceSingleton.getInstance()));
 
         Thread th1 = new Thread(dw);
         Thread th2 = new Thread(dw);

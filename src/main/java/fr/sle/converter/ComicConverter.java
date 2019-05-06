@@ -15,5 +15,4 @@ public class ComicConverter implements Converter<Comic, ComicCsvDescriptor> {
         return new Comic(objectMap.get(ComicCsvDescriptor.TITLE), p);
     }
 
-
 }
