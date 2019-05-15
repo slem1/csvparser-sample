@@ -14,6 +14,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -23,7 +28,7 @@ import java.util.regex.Pattern;
  */
 public class Application {
 
-    public static void main(String... args) throws IOException {
+    public static void main(String... args) throws IOException, InterruptedException {
 
         Pattern linePattern = ComicCsvDescriptor.getPattern();
 
@@ -39,28 +44,26 @@ public class Application {
 
         AtomicBoolean inputFlag = reader.getInputFlag();
 
+        List<Callable<Object>> tasks = new ArrayList<>();
+
+        for (int i = 0; i < 8; i++) {
+            tasks.add(Executors.callable(new DataWriter<>(bq, inputFlag, new ComicDao(DataSourceSingleton.getInstance()))));
+        }
+
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
+
         long start = System.nanoTime();
 
-        DataWriter<Comic> dw = new DataWriter<>(bq, inputFlag, new ComicDao(DataSourceSingleton.getInstance()));
+        reader.read();
 
-        Thread th0 = new Thread(reader);
-        Thread th1 = new Thread(dw);
-        Thread th2 = new Thread(dw);
-        Thread th3 = new Thread(dw);
+        List<Future<Object>> futures = executorService.invokeAll(tasks);
 
-        th1.start();
-        th2.start();
-        th3.start();
-        th0.start();
-
-
-        try {
-            th0.join();
-            th1.join();
-            th2.join();
-            th3.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for(Future<?> fs : futures){
+            try {
+                fs.get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
         }
 
         long end = System.nanoTime();
@@ -69,6 +72,7 @@ public class Application {
 
         System.out.println("Elasped time : " + result);
 
+        executorService.shutdown();
 
     }
 
